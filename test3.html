@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Operating System Simulation</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="test3.css">
+</head>
+
+<center>
+	<h1>Select Scheduling Algorithm</h1>
+	<div class="btn-group">
+	<!-- Button for FCFS Schedule -->
+	<button onclick="location.href=''">FCFS Schedule</button>
+	
+	<!-- Button for Priority Schedule -->
+	<button onclick="location.href='sjf.html'">SJF</button>
+	
+	<!-- Button for Round Robin Schedule -->
+	<button onclick="location.href='xyz.html'">Round Robin Schedule</button>
+</center>
+</div>
+<head>
+	<title>FCFS Scheduling</title>
+	<style>
+		table {
+			border-collapse: collapse;
+		}
+		table, th, td {
+			border: 1px solid black;
+		}
+		th, td {
+			padding: 5px;
+			text-align: center;
+		}
+		/* Style for input form */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+label {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+input {
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0069d9;
+}
+
+/* Style for result table */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+thead {
+    background-color: #007bff;
+    color: #fff;
+}
+
+th, td {
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid #ccc;
+}
+
+th {
+    font-weight: bold;
+}
+
+tfoot {
+    font-weight: bold;
+}
+
+#avg-wt::before {
+    content: "Average Waiting Time: ";
+}
+
+#avg-tat::before {
+    content: "Average Turnaround Time: ";
+}
+
+	</style>
+</head>
+<center>
+<body>
+	<h1>FCFS Scheduling</h1>
+	<form>
+		<label for="processes">Number of processes:</label>
+		<input type="number" id="processes" name="processes" required min="1"><br><br>
+		<table id="input-table">
+			<thead>
+				<tr>
+					<th>Process</th>
+					<th>Arrival Time</th>
+					<th>Burst Time</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!-- input fields for process information will be added dynamically -->
+			</tbody>
+		</table>
+		<br>
+		<input type="submit" value="Submit">
+	</form>
+	<br>
+	<table id="output-table">
+		<thead>
+			<tr>
+				<th>Process</th>
+				<th>Arrival Time</th>
+				<th>Burst Time</th>
+				<th>Completion Time</th>
+				<th>Waiting Time</th>
+				<th>Turnaround Time</th>
+			</tr>
+		</thead>
+		<tbody>
+			<!-- scheduling result will be added dynamically -->
+		</tbody>
+		<tfoot>
+			<tr>
+				<th colspan="4">Average</th>
+				<th id="avg-wt"></th>
+				<th id="avg-tat"></th>
+			</tr>
+		</tfoot>
+	</table>
+	<script>
+		// add event listener to the number of processes input field
+		document.getElementById('processes').addEventListener('input', function() {
+			var numProcesses = parseInt(this.value);
+			var tbody = document.querySelector('#input-table tbody');
+			tbody.innerHTML = '';
+			for (var i = 1; i <= numProcesses; i++) {
+				var tr = document.createElement('tr');
+				tr.innerHTML = '<td>' + i + '</td>' +
+					'<td><input type="number" name="arrival-time-' + i + '" required min="0"></td>' +
+					'<td><input type="number" name="burst-time-' + i + '" required min="1"></td>';
+				tbody.appendChild(tr);
+			}
+		});
+
+		// add event listener to the form submit button
+		document.querySelector('form').addEventListener('submit', function(event) {
+			event.preventDefault(); // prevent form submission
+			var numProcesses = parseInt(document.getElementById('processes').value);
+			var inputTable = document.getElementById('input-table');
+			var tbody = inputTable.getElementsByTagName('tbody')[0];
+			var processes = [];
+			// retrieve process information from input fields
+			for (var i = 1; i <= numProcesses; i++) {
+				var arrivalTime = parseInt(document.getElementsByName('arrival-time-' + i)[0].value);
+				var burstTime = parseInt(document.getElementsByName('burst-time-' + i)[0].value);
+				processes.push({
+					id: i,
+					arrivalTime: arrivalTime,
+					burstTime: burstTime,
+					completionTime: 0,
+					waitingTime: 0,
+turnaroundTime: 0
+});
+}
+// sort processes by arrival time
+processes.sort(function(a, b) {
+return a.arrivalTime - b.arrivalTime;
+});
+// calculate completion time, waiting time, and turnaround time for each process
+var currentTime = 0;
+for (var i = 0; i < numProcesses; i++) {
+var process = processes[i];
+process.completionTime = currentTime + process.burstTime;
+process.waitingTime = currentTime - process.arrivalTime;
+if (process.waitingTime < 0) {
+process.waitingTime = 0;
+}
+process.turnaroundTime = process.waitingTime + process.burstTime;
+currentTime = process.completionTime;
+}
+// calculate average waiting time and average turnaround time
+var totalWaitingTime = 0;
+var totalTurnaroundTime = 0;
+for (var i = 0; i < numProcesses; i++) {
+totalWaitingTime += processes[i].waitingTime;
+totalTurnaroundTime += processes[i].turnaroundTime;
+}
+var avgWaitingTime = totalWaitingTime / numProcesses;
+var avgTurnaroundTime = totalTurnaroundTime / numProcesses;
+// display scheduling result and average waiting time and average turnaround time
+var outputTable = document.getElementById('output-table');
+var tbody = outputTable.getElementsByTagName('tbody')[0];
+tbody.innerHTML = '';
+for (var i = 0; i < numProcesses; i++) {
+var process = processes[i];
+var tr = document.createElement('tr');
+tr.innerHTML = '<td>' + process.id + '</td>' +
+'<td>' + process.arrivalTime + '</td>' +
+'<td>' + process.burstTime + '</td>' +
+'<td>' + process.completionTime + '</td>' +
+'<td>' + process.waitingTime + '</td>' +
+'<td>' + process.turnaroundTime + '</td>';
+tbody.appendChild(tr);
+}
+document.getElementById('avg-wt').textContent = avgWaitingTime.toFixed(2);
+document.getElementById('avg-tat').textContent = avgTurnaroundTime.toFixed(2);
+});
+</script>
+<a href="home.html"><button>Home</button></a>
+</body>
+</center>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preemptive Priority Scheduling</title>
+    <link rel="stylesheet" href="trialjjava.css">
+    <style>
+      table {
+        border-collapse: collapse;
+      }
+      table, th, td {
+        border: 1px solid black;
+      }
+      th, td {
+        padding: 5px;
+        text-align: center;
+      }
+      /* Style for input form */
+  form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+  }
+  
+  label {
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+  }
+  
+  input {
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid #ccc;
+  }
+  
+  button {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+  }
+  
+  button:hover {
+      background-color: #0069d9;
+  }
+  
+  /* Style for result table */
+  table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+  }
+  
+  thead {
+      background-color: #007bff;
+      color: #fff;
+  }
+  
+  th, td {
+      padding: 0.5rem;
+      text-align: center;
+      border: 1px solid #ccc;
+  }
+  
+  th {
+      font-weight: bold;
+  }
+  
+  tfoot {
+      font-weight: bold;
+  }
+  
+  #avg-wt::before {
+      content: "Average Waiting Time: ";
+  }
+  
+  #avg-tat::before {
+      content: "Average Turnaround Time: ";
+  }
+  
+    </style>
+</head>
+
+	  </body>
+</body>
+</body>
+</html>
